@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon Pack Opener</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #ffcc00;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            margin: 0;
+            color: #fff;
+        }
+        main {
+            padding: 20px;
+            text-align: center;
+        }
+        .pack {
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+        }
+        .pack img {
+            width: 100%;
+            height: auto;
+            cursor: pointer;
+            border-radius: 10px;
+        }
+        .coins-container {
+            margin: 20px;
+            font-size: 18px;
+        }
+        .claim-container {
+            margin: 20px;
+        }
+        .claim-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .cards-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .card {
+            margin: 10px;
+            padding: 10px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 150px;
+        }
+        .card img {
+            width: 100px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+        .no-coins {
+            color: red;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Pokémon Pack Opener</h1>
+    </header>
+    <main>
+        <div class="coins-container">
+            <p>Je hebt <span id="coin-count">0</span> coins</p>
+        </div>
+
+        <div class="claim-container">
+            <button class="claim-btn" onclick="claimDailyCoins()">Dagelijkse Claim: +50 coins</button>
+            <p id="claim-status" style="color: green;"></p>
+        </div>
+
+        <div class="pack">
+            <img src="images/booster-pack.jpg" alt="Pokémon Booster Pack" onclick="openPack()">
+            <p>Klik op het pak om te openen (Kosten: 20 coins)</p>
+        </div>
+
+        <div class="no-coins" id="no-coins" style="display: none;">
+            <p>Je hebt niet genoeg coins om een pack te openen!</p>
+        </div>
+
+        <div class="cards-container" id="cards-container">
+            <!-- Hier komen de geopende kaarten -->
+        </div>
+    </main>
+
+    <script>
+        let coins = 0; // Coin variabele
+        const packCost = 0; // Kosten voor een pack
+        let geopendeKaarten = []; // Variabele om geopende kaarten op te slaan
+
+        const kaarten = [
+            { naam: "Pikachu", afbeelding: "images/pikachu.jpg", type: "Elektrisch" },
+            { naam: "Charizard", afbeelding: "images/charizard-vmax.jpg", type: "Vuur" },
+            { naam: "Blastoise", afbeelding: "images/blastoise.jpg", type: "Water" },
+            { naam: "Bulbasaur", afbeelding: "images/bulbasaur.jpg", type: "Gras" },
+            { naam: "Eevee", afbeelding: "images/eevee.jpg", type: "Normaal" },
+            { naam: "Mewtwo", afbeelding: "images/mewtwo.jpg", type: "Psychisch" },
+            { naam: "Gyarados", afbeelding: "images/gyarados.jpg", type: "Water" },
+            { naam: "Machamp", afbeelding: "images/machamp.jpg", type: "Vecht" }
+        ];
+
+        // Functie om coins op te slaan in localStorage
+        function saveCoins() {
+            localStorage.setItem('coins', coins);
+        }
+
+        // Functie om coins op te halen uit localStorage
+        function loadCoins() {
+            const storedCoins = localStorage.getItem('coins');
+            if (storedCoins) {
+                coins = parseInt(storedCoins);
+                document.getElementById('coin-count').textContent = coins;
+            }
+        }
+
+        // Functie om geopende kaarten op te slaan in localStorage
+        function saveKaarten() {
+            localStorage.setItem('geopendeKaarten', JSON.stringify(geopendeKaarten));
+        }
+
+        // Functie om geopende kaarten op te halen uit localStorage
+        function loadKaarten() {
+            const storedKaarten = localStorage.getItem('geopendeKaarten');
+            if (storedKaarten) {
+                geopendeKaarten = JSON.parse(storedKaarten);
+                updateKaartenWeergave();
+            }
+        }
+
+        // Functie om de geopende kaarten weer te geven
+        function updateKaartenWeergave() {
+            const cardsContainer = document.getElementById('cards-container');
+            cardsContainer.innerHTML = ''; // Leeg de container
+
+            geopendeKaarten.forEach(kaart => {
+                const cardElement = document.createElement('div');
+                cardElement.classList.add('card');
+
+                cardElement.innerHTML = `
+                    <img src="${kaart.afbeelding}" alt="${kaart.naam}">
+                    <h3>${kaart.naam}</h3>
+                    <p>Type: ${kaart.type}</p>
+                `;
+                cardsContainer.appendChild(cardElement);
+            });
+        }
+
+        // Dagelijkse claim van 50 coins
+        function claimDailyCoins() {
+            const lastClaimDate = localStorage.getItem('lastClaimDate');
+            const today = new Date().toLocaleDateString(); // Haal de huidige datum op
+
+            if (lastClaimDate === today) {
+                document.getElementById('claim-status').textContent = 'Je hebt vandaag al je coins geclaimd!';
+            } else {
+                coins += 50;
+                localStorage.setItem('lastClaimDate', today); // Sla de huidige datum op
+                saveCoins(); // Coins opslaan
+                document.getElementById('coin-count').textContent = coins;
+                document.getElementById('claim-status').textContent = 'Je hebt 50 coins geclaimd!';
+            }
+        }
+
+        function openPack() {
+            if (coins >= packCost) {
+                // Verminder de coins
+                coins -= packCost;
+                document.getElementById('coin-count').textContent = coins;
+                document.getElementById('no-coins').style.display = 'none';
+                saveCoins(); // Coins opslaan
+
+                // Kies willekeurig 5 kaarten
+                let packKaarten = [];
+                while (packKaarten.length < 5) {
+                    const randomIndex = Math.floor(Math.random() * kaarten.length);
+                    const kaart = kaarten[randomIndex];
+
+                    // Zorg dat dezelfde kaart niet dubbel getrokken wordt
+                    if (!packKaarten.includes(kaart)) {
+                        packKaarten.push(kaart);
+                    }
+                }
+
+                // Voeg de geopende kaarten toe aan de verzameling
+                geopendeKaarten.push(...packKaarten);
+                saveKaarten(); // Kaarten opslaan
+                updateKaartenWeergave(); // Werk de weergave van kaarten bij
+            } else {
+                // Toon bericht als de gebruiker onvoldoende coins heeft
+                document.getElementById('no-coins').style.display = 'block';
+            }
+        }
+
+        // Laad coins en geopende kaarten bij het laden van de pagina
+        window.onload = function() {
+            loadCoins();
+            loadKaarten();
+
+            const lastClaimDate = localStorage.getItem('lastClaimDate');
+            const today = new Date().toLocaleDateString();
+
+            if (lastClaimDate === today) {
+                document.getElementById('claim-status').textContent = 'Je hebt vandaag al je coins geclaimd!';
+            } else {
+                document.getElementById('claim-status').textContent = '';
+            }
+        };
+    </script>
+</body>
+</html>
